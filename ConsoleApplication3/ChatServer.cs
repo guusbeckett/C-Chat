@@ -13,14 +13,54 @@ namespace ConsoleApplication3
         System.Net.Sockets.TcpListener chatServer;
         public static Hashtable id;
         public static Hashtable idConnect;
-        private string ip;
+        public static StreamWriter log;
+        private static DateTime datum;
 
         public ChatServer()
         {
             id = new Hashtable(100);
             idConnect = new Hashtable(100);
             chatServer = new TcpListener(4296);
+            createLog();
+            Console.WriteLine("Wachten op Clients");
+            Thread connectThread = new Thread(new ThreadStart(connectionThread));
+            connectThread.Start();
             while (true)
+            {
+                String cnsmsg = Console.ReadLine();
+                if (cnsmsg.Equals("Exit", StringComparison.OrdinalIgnoreCase))
+                {
+                    Console.WriteLine("App word afgesloten");
+                    break;
+                }
+
+                else if (cnsmsg.Equals("Help", StringComparison.OrdinalIgnoreCase))
+                {
+                    Console.WriteLine("------\r\nDit is de Help informatie:\r\n\r\nExit: Stop het programma\r\nSave: Sla de chat log op\r\nLoad: Laad de chat log\r\n------");
+                }
+
+                else if (cnsmsg.Equals("Save", StringComparison.OrdinalIgnoreCase))
+                {
+                    SaveLog();
+                    Console.WriteLine("Log opgeslagen op de volgende locatie: ");
+                }
+
+                else if (cnsmsg.Equals("Load", StringComparison.OrdinalIgnoreCase))
+                {
+                    Loadlog();
+                    Console.WriteLine("Log geladen");
+                }
+                else Console.WriteLine("Commando niet bekend");
+            }
+            
+        }
+
+
+        public void connectionThread()
+        {
+            try
+            {
+             while (true)
             {
                 //start de chat servertje
                 chatServer.Start();
@@ -30,10 +70,15 @@ namespace ConsoleApplication3
                     //wacht op connecties
                     Chat.Sockets.TcpClient chatConnection = chatServer.AcceptTcpClient();
                     //laat weten dat er verbinding is
-                    Console.WriteLine("Je Bent geconnect");
-                    //maak nieuw prot. aan
-                    CommunicatieProt comm = new CommunicatieProt(chatConnection);
+                    Console.WriteLine("Client geconnect");
+                    //maak nieuw protje aan
+                    CommunicatieHandler comm = new CommunicatieHandler(chatConnection);
                 }
+            }
+            }
+            catch (Exception e3)
+            {
+                Console.WriteLine(e3);
             }
         }
 
@@ -68,9 +113,9 @@ namespace ConsoleApplication3
 
                     writer = null; //zet de writer weer op pauze. Wacht tot ie weer nodig is.
                 }
-                catch (Exception e43) //is de exeption als iemand uit de chat gaat. Die wordt hier opgevangen. (Leave)
+                catch (Exception e2) //is de exeption als iemand uit de chat gaat. Die wordt hier opgevangen. (Leave)
                 {
-                    Console.WriteLine(e43);
+                    Console.WriteLine(e2);
                     string str = (string)ChatServer.idConnect[tcpClient[cnt]];
                     
                     ChatServer.SendSystemMessage("\"" + str + "\"" + " heeft het gesprek verlaten"); //Druk een bericht af in de chat dat de "Gebruiker" weg is.
@@ -104,17 +149,34 @@ namespace ConsoleApplication3
                     writer = null;
 
                 }
-                catch (Exception e44)
+                catch (Exception e1)
                 {
-                    Console.WriteLine(e44);
+                    Console.WriteLine(e1);
                     ChatServer.id.Remove(ChatServer.idConnect[tcpClient[i]]);
                     ChatServer.idConnect.Remove(tcpClient[i]);
                 }
             }
+        }
 
+        public static void SaveLog()
+        {
 
+        }
 
+        public static void Loadlog()
+        {
 
+        }
+
+        public static void createLog()
+        {
+            datum = new DateTime();
+            datum = DateTime.Today;
+            String name = datum.ToString();
+            name = name.Replace(":", " ");
+            name = "./Logs/" + name + ".txt";
+            Console.WriteLine(name);
+            log = new StreamWriter(name);
         }
 
     }

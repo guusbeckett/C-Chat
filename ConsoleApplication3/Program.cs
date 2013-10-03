@@ -10,6 +10,7 @@ namespace ConsoleApplication3
     {
         static void Main(string[] args)
         {
+            ChatServer server = new ChatServer();
         }
     }
 }

@@ -10,14 +10,14 @@ using ConsoleApplication3;
 
 namespace ConsoleApplication3
 {
-    class CommunicatieProt
+    class CommunicatieHandler
     {
         private String nickName;
         private StreamWriter writer;
         private StreamReader reader;
         private System.Net.Sockets.TcpClient client;
 
-        public CommunicatieProt(System.Net.Sockets.TcpClient tcpClient)
+        public CommunicatieHandler(System.Net.Sockets.TcpClient tcpClient)
         {
 	        //tcp client maken
 	        client = tcpClient;
@@ -30,7 +30,7 @@ namespace ConsoleApplication3
         private string GetNick()
         {
             //Vraag naar de id van de gebruiker
-            writer.WriteLine("Wat is je gebruikersnaam? ");
+            writer.WriteLine("Wat is je gebruikersnaam?");
             //ensure the buffer is empty
             writer.Flush();
             //return the value the user provided
@@ -67,13 +67,14 @@ namespace ConsoleApplication3
                 {
                     //read the curent line
                     line = reader.ReadLine();
+                    ChatServer.log.WriteLine(line);
                     //send our message
-                    ConsoleApplication3.ChatServer.SendMsgToAll(nickName, line);
+                    ChatServer.SendMsgToAll(nickName, line);
                 }
             }
-            catch (Exception e44)
+            catch (Exception e4)
             {
-                Console.WriteLine(e44);
+                Console.WriteLine(e4);
             }
         }
     }
