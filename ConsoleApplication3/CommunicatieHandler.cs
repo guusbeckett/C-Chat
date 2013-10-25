@@ -5,6 +5,8 @@ using System.Threading;
 using Chat = System.Net;
 using System.Collections;
 using ConsoleApplication3;
+using CChat_Library.Objects;
+using CChat_Library.Objects.Packets;
 
 
 
@@ -12,70 +14,42 @@ namespace ConsoleApplication3
 {
     class CommunicatieHandler
     {
-        private String nickName;
-        private StreamWriter writer;
-        private StreamReader reader;
-        private System.Net.Sockets.TcpClient client;
-
-        public CommunicatieHandler(System.Net.Sockets.TcpClient tcpClient)
+        public CommunicatieHandler()
         {
-	        //tcp client maken
-	        client = tcpClient;
-	        //maakt thread
-	        Thread chatThread = new Thread(new ThreadStart(startChat));
-	        //start threadje
-	        chatThread.Start();
+
         }
 
-        private string GetNick()
+        public static void readPacket(ChatServer _server, Client _client, Packet packet)
         {
-            //Vraag naar de id van de gebruiker
-            writer.WriteLine("Wat is je gebruikersnaam?");
-            //ensure the buffer is empty
-            writer.Flush();
-            //return the value the user provided
-            return reader.ReadLine();
-        }
+            switch (packet.Flag)
+            {
+                case Packet.PacketFlag.PACKETFLAG_CHANGE_STATUS:
+                    _server.changeStatus(packet, _client);
+                    break;
 
-        private void startChat()
-        {
-            reader = new System.IO.StreamReader(client.GetStream());
-            writer = new System.IO.StreamWriter(client.GetStream());
-            writer.WriteLine("Welcome to PCChat!");
-            nickName = GetNick();
-            while (ConsoleApplication3.ChatServer.id.Contains(nickName))
-            {
-                writer.WriteLine("ERROR - Gebruikersnaam bestaat al");
-                nickName = GetNick();
-            }
-            ConsoleApplication3.ChatServer.id.Add(nickName, client);
-            ConsoleApplication3.ChatServer.idConnect.Add(client, nickName);
-            ConsoleApplication3.ChatServer.SendSystemMessage("** " + nickName + " ** heeft de chat gejoint");
-            writer.WriteLine("Chateuden.....\r\n-------------------------------");
-            writer.Flush();
-            Thread chatThread = new Thread(new ThreadStart(runChat));
-            chatThread.Start();
-        }
+                case Packet.PacketFlag.PACKETFLAG_CHAT:
+                    System.Diagnostics.Debug.WriteLine("TESTEN");
+                    _server.sendMessage(packet, _client);
+                    break;
 
-        private void runChat()
-        {
-            try
-            {
-                //maak line leeg.
-                string line = "";
-                while (true)
-                {
-                    //read the curent line
-                    line = reader.ReadLine();
-                    ChatServer.log.WriteLine(line);
-                    //send our message
-                    ChatServer.SendMsgToAll(nickName, line);
-                }
-            }
-            catch (Exception e4)
-            {
-                Console.WriteLine(e4);
+                case Packet.PacketFlag.PACKETFLAG_REQUEST_HANDSHAKE:
+                    _server.handshakeResponse(_client, (Handshake)packet.Data);
+                    break;
+
+                case Packet.PacketFlag.PACKETFLAG_REQUEST_USERLIST:
+                    _client.sendHandler(_server.getOnlineList());
+                    break;
+
+                default:
+                    Console.WriteLine("Error: Flag not supported - {0}", packet.Flag);
+                    break;
             }
         }
+
+        public static void setUssername(Client client, Packet packet)
+        {
+            client.setUssername(((Handshake)packet.Data).username); 
+        }
+        
     }
 }

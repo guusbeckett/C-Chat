@@ -5,179 +5,121 @@ using System.Threading;
 using Chat = System.Net;
 using System.Collections;
 using System.Net.Sockets;
+using System.Diagnostics;
+using CChat_Library.Objects;
+using CChat_Library.Objects.Packets;
+using System.Collections.Generic;
+
 
 namespace ConsoleApplication3
 {
     class ChatServer
     {
-        System.Net.Sockets.TcpListener chatServer;
-        public static Hashtable id;
-        public static Hashtable idConnect;
-        public static StreamWriter log;
-        private static DateTime datum;
+        //
+        private TcpListener tcpListener;
+        private List<Client> clientList = new List<Client>();
+
+
+       //
+
 
         public ChatServer()
         {
-            id = new Hashtable(100);
-            idConnect = new Hashtable(100);
-            chatServer = new TcpListener(4296);
-            createLog();
-            Console.WriteLine("Wachten op Clients");
-            Thread connectThread = new Thread(new ThreadStart(connectionThread));
-            connectThread.Start();
-            while (true)
-            {
-                String cnsmsg = Console.ReadLine();
-                if (cnsmsg.Equals("Exit", StringComparison.OrdinalIgnoreCase))
-                {
-                    Console.WriteLine("App word afgesloten");
-                    break;
-                }
-
-                else if (cnsmsg.Equals("Help", StringComparison.OrdinalIgnoreCase))
-                {
-                    Console.WriteLine("------\r\nDit is de Help informatie:\r\n\r\nExit: Stop het programma\r\nSave: Sla de chat log op\r\nLoad: Laad de chat log\r\n------");
-                }
-
-                else if (cnsmsg.Equals("Save", StringComparison.OrdinalIgnoreCase))
-                {
-                    SaveLog();
-                    Console.WriteLine("Log opgeslagen op de volgende locatie: ");
-                }
-
-                else if (cnsmsg.Equals("Load", StringComparison.OrdinalIgnoreCase))
-                {
-                    Loadlog();
-                    Console.WriteLine("Log geladen");
-                }
-                else Console.WriteLine("Commando niet bekend");
-            }
-            
+            tcpListener = new TcpListener(System.Net.IPAddress.Any, 1994);
+            clientzoeker();
         }
 
-
-        public void connectionThread()
+        public void clientzoeker()
         {
-            try
-            {
-             while (true)
-            {
-                //start de chat servertje
-                chatServer.Start();
-                //kijk voor connecties
-                if (chatServer.Pending())
-                {
-                    //wacht op connecties
-                    Chat.Sockets.TcpClient chatConnection = chatServer.AcceptTcpClient();
-                    //laat weten dat er verbinding is
-                    Console.WriteLine("Client geconnect");
-                    //maak nieuw protje aan
-                    CommunicatieHandler comm = new CommunicatieHandler(chatConnection);
-                }
-            }
-            }
-            catch (Exception e3)
-            {
-                Console.WriteLine(e3);
-            }
-        }
-
-        public static void SendMsgToAll(string nick, string msg)
-        {
-            StreamWriter writer; //Maak Writer aan
-            ArrayList ToRemove = new ArrayList(0); 
-
-            //Nieuwe array van TCP Clients aanmaken.
-            Chat.Sockets.TcpClient[] tcpClient = new Chat.Sockets.TcpClient[ChatServer.id.Count];
-
-            //Maak lijst met tcp Clients aan op basis van ID's 
-            ChatServer.id.Values.CopyTo(tcpClient, 0);
-         
-            for (int cnt = 0; cnt < tcpClient.Length; cnt++)
+            tcpListener.Start();
+            TcpClient clientZoeker;
+            for (; ; )
             {
                 try
                 {
-                    //kijk of Berichtje leeg is of null. Dan moet hij gewoon doorgaan.
-                    if (msg.Trim() == "" || tcpClient[cnt] == null)
-                    continue;
-
-                    // Maak de StreamWriter aan.
-                    writer = new StreamWriter(tcpClient[cnt].GetStream());
-
-                    //Druk bericht af met id er voor.
-                    writer.WriteLine(id + ": " + msg);
-
-
-                    //Nu er voor zorgen dat alles verstuurd is en clean is nu.
-                    writer.Flush();
-
-                    writer = null; //zet de writer weer op pauze. Wacht tot ie weer nodig is.
+                    Console.WriteLine("Zoeken naar clients...");
+                    clientZoeker = tcpListener.AcceptTcpClient();
+                    newClient(clientZoeker);
+                    Console.WriteLine("Client connected");
                 }
-                catch (Exception e2) //is de exeption als iemand uit de chat gaat. Die wordt hier opgevangen. (Leave)
+                catch
                 {
-                    Console.WriteLine(e2);
-                    string str = (string)ChatServer.idConnect[tcpClient[cnt]];
-                    
-                    ChatServer.SendSystemMessage("\"" + str + "\"" + " heeft het gesprek verlaten"); //Druk een bericht af in de chat dat de "Gebruiker" weg is.
-
-                    ChatServer.id.Remove(str); // verwijder gebruiker uit de lijst.
-
-                    ChatServer.idConnect.Remove(tcpClient[cnt]);// verwijder uit de array voor nieuwe connector.
-
-
+                    System.Diagnostics.Debug.WriteLine("Error in client zoeken");
                 }
+                Thread.Sleep(10);
             }
         }
 
-        public static void SendSystemMessage(string msg)
+        public void newClient(TcpClient client)
         {
-            StreamWriter writer; //writer weer aanmaken en alles het zelfde alleen nu door system een message
-            ArrayList ToRemove = new ArrayList(0);
-            Chat.Sockets.TcpClient[] tcpClient = new Chat.Sockets.TcpClient[ChatServer.id.Count];
-            ChatServer.id.Values.CopyTo(tcpClient, 0);
+            new Client(client, this);
+        }
 
-            for (int i = 0; i < tcpClient.Length; i++)
+
+    
+        public void sendMessage(Packet _packet,Client _client)
+        {
+            ChatMessage msg = (ChatMessage)_packet.Data;
+
+            Console.WriteLine(msg.Chat);
+
+            foreach (Client client in clientList)
             {
-                try
+                if (client.user == msg.Reciever || msg.Reciever == "ALL")
                 {
-                    if (msg.Trim() == "" || tcpClient[i] == null)
-                        continue;
-
-                    writer = new StreamWriter(tcpClient[i].GetStream());
-                    writer.WriteLine(msg);
-                    writer.Flush();
-                    writer = null;
-
-                }
-                catch (Exception e1)
-                {
-                    Console.WriteLine(e1);
-                    ChatServer.id.Remove(ChatServer.idConnect[tcpClient[i]]);
-                    ChatServer.idConnect.Remove(tcpClient[i]);
+                    client.sendHandler(_packet);
                 }
             }
-        }
-
-        public static void SaveLog()
+        }   
+        
+        public void handshakeResponse(Client _client, Handshake _handshake)
         {
+            int count = 1;
+            ResponseHandshake antwoord = new ResponseHandshake();
+            antwoord.Result = ResponseHandshake.ResultType.RESULTTYPE_ACCESSDENIED;
+            if (clientList.Contains(_client))
+            {
+                antwoord.Result = ResponseHandshake.ResultType.RESULTTYPE_USER_EXISTS;
+                foreach (Client client in clientList)
+	            {
+		            if (_client.user.Equals(client.user + count))
+	                {
+		                count++;
+	                }
+                    else antwoord.givenUsername = _client.user + count;
+	            }
+            }
+            else
+            {
+                addToClientList(_client);
+                antwoord.Result = ResponseHandshake.ResultType.RESULTTYPE_OK;
+            }
 
+            Packet responsePack = new Packet();
+            responsePack.Data = antwoord;
+            responsePack.Flag = Packet.PacketFlag.PACKETFLAG_RESPONSE_HANDSHAKE;
+            _client.sendHandler(responsePack);
         }
 
-        public static void Loadlog()
+        public Packet getOnlineList()
         {
-
+            Packet packet = new Packet();
+            packet.Flag = Packet.PacketFlag.PACKETFLAG_RESPONSE_USERLIST;
+            packet.Data = clientList;
+            return packet;
         }
 
-        public static void createLog()
+        public void addToClientList(Client client)
         {
-            datum = new DateTime();
-            datum = DateTime.Today;
-            String name = datum.ToString();
-            name = name.Replace(":", " ");
-            name = "./Logs/" + name + ".txt";
-            Console.WriteLine(name);
-            log = new StreamWriter(name);
+            clientList.Add(client);
         }
 
+        public void changeStatus(Packet packet, Client _client)
+        {
+            _client.setStatus(UserStatus.Status.STATUS_ONLINE);
+            _client.setStatus(UserStatus.Status.SATUS_BUSY);
+            _client.setStatus(UserStatus.Status.STATUS_AWAY);
+            _client.setStatus(UserStatus.Status.STATUS_OFFLINE);
+        }
     }
 }

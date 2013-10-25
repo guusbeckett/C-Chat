@@ -32,6 +32,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="C-Chat_lib, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Dropbox\Gedeelde School mappen\C-Chat\C-Chat_lib.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -44,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ChatServer.cs" />
+    <Compile Include="Client.cs" />
     <Compile Include="CommunicatieHandler.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
