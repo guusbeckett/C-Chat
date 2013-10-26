@@ -33,6 +33,8 @@
             this.textBoxSend = new System.Windows.Forms.TextBox();
             this.richTextBoxChat = new System.Windows.Forms.RichTextBox();
             this.labelActiveClient = new System.Windows.Forms.Label();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
             // listBoxRecievers
@@ -79,15 +81,25 @@
             this.labelActiveClient.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.labelActiveClient.Location = new System.Drawing.Point(138, 20);
             this.labelActiveClient.Name = "labelActiveClient";
-            this.labelActiveClient.Size = new System.Drawing.Size(98, 37);
+            this.labelActiveClient.Size = new System.Drawing.Size(149, 37);
             this.labelActiveClient.TabIndex = 4;
-            this.labelActiveClient.Text = "Client";
+            this.labelActiveClient.Text = "Everyone";
+            // 
+            // pictureBox1
+            // 
+            this.pictureBox1.Location = new System.Drawing.Point(492, 13);
+            this.pictureBox1.Name = "pictureBox1";
+            this.pictureBox1.Size = new System.Drawing.Size(43, 44);
+            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
+            this.pictureBox1.TabIndex = 5;
+            this.pictureBox1.TabStop = false;
             // 
             // ChatWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(547, 504);
+            this.Controls.Add(this.pictureBox1);
             this.Controls.Add(this.labelActiveClient);
             this.Controls.Add(this.richTextBoxChat);
             this.Controls.Add(this.textBoxSend);
@@ -96,6 +108,7 @@
             this.Name = "ChatWindow";
             this.Text = "C-Chat by Mackett";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.ChatWindow_FormClosing);
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -108,6 +121,7 @@
         private System.Windows.Forms.TextBox textBoxSend;
         private System.Windows.Forms.Label labelActiveClient;
         public System.Windows.Forms.RichTextBox richTextBoxChat;
+        private System.Windows.Forms.PictureBox pictureBox1;
     }
 }
 

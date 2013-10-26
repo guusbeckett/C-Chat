@@ -26,7 +26,6 @@ namespace WindowsFormsApplication1
 
         private void enterOrButtonPress()
         {
-            richTextBoxChat.Text += textBoxSend.Text + "\n";
             sendChat();
             textBoxSend.Clear();
         }
@@ -53,7 +52,8 @@ namespace WindowsFormsApplication1
 
         private void sendChat()
         {
-            Program.connect.sendMessage(textBoxSend.Text,"ALL",clientName);
+            if (listBoxRecievers.SelectedIndex <= 0) Program.connect.sendMessage(textBoxSend.Text, "ALL", clientName);
+            else Program.connect.sendMessage(textBoxSend.Text,selectedReciever,clientName);
         }
 
         public void setClientName(string clientNaam)
@@ -68,6 +68,7 @@ namespace WindowsFormsApplication1
             foreach(string user in users)
             {
                 if (user == null) break;
+                if (user.Equals(clientName)) break;
                 listBoxRecievers.Items.Add(user);
             }
             
@@ -80,12 +81,23 @@ namespace WindowsFormsApplication1
 
         private void listBoxRecievers_SelectedValueChanged(object sender, EventArgs e)
         {
-            selectedReciever = this.listBoxRecievers.SelectedValue.ToString();
-        }
-
-        public void selectedRecieverUpdate()
-        {
-            
+            richTextBoxChat.Text = "";
+            selectedReciever = this.listBoxRecievers.SelectedItem.ToString();
+            this.labelActiveClient.Text = selectedReciever;
+            foreach (Client klient in Program.clients)
+            {
+                foreach (Client cl in Program.clients)
+                {
+                    if (cl.getName().Equals(listBoxRecievers.SelectedItem))
+                    {
+                        try
+                        {
+                            Program.chatWindow.Invoke(new Action(() => setChatText(klient.getChat())));
+                        }
+                        catch { }
+                    }
+                }
+            }
         }
 
         public void recieveChat(string sender,string message)
@@ -114,6 +126,11 @@ namespace WindowsFormsApplication1
                         cl.recieveChat(message, sender);
                     }
                 }
+        }
+
+        private void setChatText(string text)
+        {
+            richTextBoxChat.Text = text;
         }
 
         private void ChatWindow_FormClosing(object sender, FormClosingEventArgs e)
