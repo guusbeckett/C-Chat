@@ -67,9 +67,7 @@ namespace WindowsFormsApplication1
             listBoxRecievers.Items.Clear();
             foreach(string user in users)
             {
-                if (user == null) break;
-                if (user.Equals(clientName)) break;
-                listBoxRecievers.Items.Add(user);
+                if (!user.Equals(clientName)) listBoxRecievers.Items.Add(user);
             }
             
         }
@@ -115,7 +113,7 @@ namespace WindowsFormsApplication1
         {
             if (sender.Equals("ALL"))
             {
-                richTextBoxChat.Text += message + "\n";
+                richTextBoxChat.Text += "Broadcast ["+DateTime.Now.ToShortTimeString()+"]: "+ message + "\n";
                 richTextBoxChat.Update();
             }
             else
