@@ -3,11 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.20617.1 PREVIEW
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApplication3", "ConsoleApplication3\ConsoleApplication3.csproj", "{BBF44292-5164-4D2E-B45E-DD237B5E6EF4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "C-Chat Client", "WindowsFormsApplication1\C-Chat Client.csproj", "{7D83A195-4040-47D5-AEBB-52ED7D6BDC99}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WindowsFormsApplication1", "WindowsFormsApplication1\WindowsFormsApplication1.csproj", "{7D83A195-4040-47D5-AEBB-52ED7D6BDC99}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CChat_Library", "ClassLibrary1\CChat_Library.csproj", "{D4729839-A1EF-456F-AF40-19E8211212D4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "C-Chat Library", "ClassLibrary1\C-Chat Library.csproj", "{D4729839-A1EF-456F-AF40-19E8211212D4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,10 +13,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{BBF44292-5164-4D2E-B45E-DD237B5E6EF4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BBF44292-5164-4D2E-B45E-DD237B5E6EF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BBF44292-5164-4D2E-B45E-DD237B5E6EF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BBF44292-5164-4D2E-B45E-DD237B5E6EF4}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7D83A195-4040-47D5-AEBB-52ED7D6BDC99}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7D83A195-4040-47D5-AEBB-52ED7D6BDC99}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7D83A195-4040-47D5-AEBB-52ED7D6BDC99}.Release|Any CPU.ActiveCfg = Release|Any CPU

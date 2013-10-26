@@ -19,7 +19,9 @@ namespace CChat_Library.Objects
                 PACKETFLAG_RESPONSE_HANDSHAKE,
                 PACKETFLAG_CHAT,
                 PACKETFLAG_REQUEST_USERLIST,
-                PACKETFLAG_RESPONSE_USERLIST
+                PACKETFLAG_RESPONSE_USERLIST,
+                PACKETFLAG_CHANGE_STATUS,
+                PACKETFLAG_RESPONSE_STATUS
             }
 
             /// <summary>

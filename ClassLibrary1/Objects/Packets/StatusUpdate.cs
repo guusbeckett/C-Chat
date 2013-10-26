@@ -7,8 +7,9 @@ using System.Threading.Tasks;
 namespace CChat_Library.Objects.Packets
 {
     [Serializable]
-    public class RequestUsers
+    public class StatusUpdate
     {
-        string requestingUserName { get; set; }
+        UserStatus.Status status { get; set; }
+        string userName { get; set; }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ClientApp;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
@@ -6,11 +7,16 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using WindowsFormsApplication1;
 
 namespace WindowsFormsApplication1
 {
-    class Program
+
+    static class Program
     {
+        public static ChatWindow chatWindow;
+        public static LoginWindow loginWindow;
+        public static Connection connect;
         public static List<Client> clients;
         /// <summary>
         /// The main entry point for the application.
@@ -18,24 +24,14 @@ namespace WindowsFormsApplication1
         [STAThread]
         static void Main()
         {
+           
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+            loginWindow = new LoginWindow();
+            chatWindow = new ChatWindow();
+            Application.Run(loginWindow);
         }
-
-        public void sendMessage(string reciever, string message)
-        {
-            CChat_Library.Objects.Packet pack = new CChat_Library.Objects.Packet();
-            pack.Flag = CChat_Library.Objects.Packet.PacketFlag.PACKETFLAG_CHAT;
-            pack.Data = new CChat_Library.Objects.Packets.ChatMessage()
-            {
-                Sender = "",
-                Reciever = reciever,
-                Chat = message
-            };
-
-
-        }
+    }
 
 
     }
@@ -43,49 +39,37 @@ namespace WindowsFormsApplication1
     {
         private TcpClient tcpClient;
 
-
         public void Login(string login, string password, string ip)
         {
             CChat_Library.Objects.Packet Pack = new CChat_Library.Objects.Packet();
             Pack.Flag = CChat_Library.Objects.Packet.PacketFlag.PACKETFLAG_REQUEST_HANDSHAKE;
-            Pack.Data = new CChat_Library.Objects.Packets.Handshake()
+            Pack.Data = new CChat_Library.Objects.Packets.Handshake
             {
                 username = login,
                 password = password
 
             };
-            tcpClient = new TcpClient(ip, 31337);
-            this.ip = ip;
-            stream = new SslStream(tcpClient.GetStream(), false, new System.Net.Security.RemoteCertificateValidationCallback(checkCert), null);
-            try
-            {
-                stream.AuthenticateAsClient(ip);
-            }
-            catch
-            {
-            }
-            sendPacket(Pack);
-            Thread Comm = new Thread(new ParameterizedThreadStart(HandleCommunication));
-            Comm.Start(tcpClient);
-
-            //temp code for testing without server
-            //Program.form2.denied(2);
-            Program.form2.Close();
-            //clientStream.Write(), 0, );
+             tcpClient = new TcpClient(ip, 1994);
+             this.ip = ip;
+             sendPacket(Pack);
+             logged = true;
+             Thread Comm = new Thread(new ParameterizedThreadStart(HandleCommunication));
+             Comm.Start(tcpClient);
+             lost = 0;
+             this.login = login;
+             this.pass = password;
+             Program.chatWindow.clientName = login;
         }
 
-        private void sendPacket(CChat_Library.Objects.Packet Pack)
+        private void form2()
         {
-            throw new NotImplementedException();
+            Application.Run(Program.chatWindow);
         }
-
-
-
 
         public void HandleCommunication(object tcp)
         {
             TcpClient tcpClient = (TcpClient)tcp;
-
+            
 
             while (true)
             {
@@ -98,13 +82,28 @@ namespace WindowsFormsApplication1
                         {
                             try
                             {
-                                packet = (CChat_Library.Objects.Packet)new BinaryFormatter().Deserialize(stream);
+                                packet = (CChat_Library.Objects.Packet)new BinaryFormatter().Deserialize(tcpClient.GetStream());
                                 handlePacket(packet);
+                                lost = 0;
                             }
 
                             catch
                             {
-                                Console.WriteLine("Packet lost");
+                                if (logged)
+                                {
+                                    ++lost;
+                                    Console.WriteLine("Packet lost");
+                                    if (lost > 5)
+                                    {
+                                        logged = false;
+                                        Program.connect.Login(login, pass, ip);
+                                        break;
+                                    }
+                                }
+                                else
+                                {
+                                    Program.loginWindow.denied(3);
+                                }
                             }
                         }
                         else
@@ -122,7 +121,6 @@ namespace WindowsFormsApplication1
                 }
                 catch
                 {
-                    tcpClient = new TcpClient(ip, 31337);
                     Console.WriteLine("socket was dropped");
                 }
 
@@ -131,27 +129,26 @@ namespace WindowsFormsApplication1
             //tcpClient.Close();
         }
 
-
         private void handlePacket(CChat_Library.Objects.Packet packet)
         {
+            Console.WriteLine("Packet ontvangen");
             switch (packet.Flag)
             {
                 case CChat_Library.Objects.Packet.PacketFlag.PACKETFLAG_RESPONSE_USERLIST:
                     List<String> users = (List<String>)packet.Data;
-                    if (Program.form1.InvokeRequired)
+                    if (Program.chatWindow.InvokeRequired)
                     {
-                        Program.form1.Invoke(new Action(() => Program.form1.updateUsers(users)));
+                        Program.chatWindow.Invoke(new Action(() => Program.chatWindow.updateUsers(users)));
                     }
-
+                    
                     break;
                 case CChat_Library.Objects.Packet.PacketFlag.PACKETFLAG_CHAT:
                     CChat_Library.Objects.Packets.ChatMessage chatMess = (CChat_Library.Objects.Packets.ChatMessage)packet.Data;
-                    Console.WriteLine(chatMess.Sender.ToString());
                     foreach (Client client in Program.clients)
                     {
                         if (client.getName().Equals(chatMess.Sender.ToString()))
                         {
-                            client.recieveChat(chatMess.Chat, chatMess.Sender.ToString());
+                            client.recieveChat(chatMess.Chat, chatMess.Sender);
                             int o = 0;
                             for (int i = 0; i < Program.clients.Count; i++)
                             {
@@ -161,74 +158,118 @@ namespace WindowsFormsApplication1
                                     break;
                                 }
                             }
-                            if (Program.form1.selectedReciever == o)
+                        
+
+                            if (Program.chatWindow.selectedReciever.Equals(null))
                             {
-                                if (Program.form1.InvokeRequired)
+                                if (Program.chatWindow.InvokeRequired)
                                 {
-                                    Program.form1.Invoke(new Action(() => Program.form1.refreshChat()));
+                                    Program.chatWindow.Invoke(new Action(() => Program.chatWindow.refreshChat()));
                                 }
                             }
                         }
                     }
+                    if (chatMess.Reciever.Equals("ALL"))
+                    {
+                        Program.chatWindow.recieveChat("ALL", chatMess.Chat);
+                    }
                     break;
-                case CChat_Library.Objects.Packet.PacketFlag.PACKETFLAG_RESPONSE_HANDSHAKE:
+               case CChat_Library.Objects.Packet.PacketFlag.PACKETFLAG_RESPONSE_HANDSHAKE:
                     CChat_Library.Objects.Packets.ResponseHandshake handshake = (CChat_Library.Objects.Packets.ResponseHandshake)packet.Data;
-
-                    switch (handshake.Result)
+               switch (handshake.Result)
                     {
                         case CChat_Library.Objects.Packets.ResponseHandshake.ResultType.RESULTTYPE_ACCESSDENIED:
-                            Program.form2.denied(2);
+                            Program.loginWindow.denied(2);
                             break;
                         case CChat_Library.Objects.Packets.ResponseHandshake.ResultType.RESULTTYPE_INVALIDCREDENTIALS:
-                            Program.form2.denied(1);
+                            Program.loginWindow.denied(1);
+                            break;
+                        case CChat_Library.Objects.Packets.ResponseHandshake.ResultType.RESULTTYPE_USER_EXISTS:
+                            Program.loginWindow.denied(3);
                             break;
                         case CChat_Library.Objects.Packets.ResponseHandshake.ResultType.RESULTTYPE_OK:
-                            Program.form2.Hide();
+                            //Program.form2.Hide();
                             Thread Comm = new Thread(form2);
                             Comm.Start();
                             Program.clients = new List<Client>();
                             requestUsers();
                             break;
+                   
+
                     }
                     break;
                 default:
                     Console.WriteLine("packet not recognized");
                     break;
             }
+                  
+            
         }
-        
 
         public void requestUsers()
         {
-            //BinaryFormatter format = new BinaryFormatter();
-            //format.Serialize(tcpClient.GetStream(), Package);
+            CChat_Library.Objects.Packet Pack = new CChat_Library.Objects.Packet();
+            Pack.Flag = CChat_Library.Objects.Packet.PacketFlag.PACKETFLAG_REQUEST_USERLIST;
+            //Pack.Data 
+            sendPacket(Pack);
         }
 
-
-        public void sendMessage(string message, string reciever)
+        public void sendPacket(CChat_Library.Objects.Packet packet)
         {
-            ChatMessage chatMessage = new ChatMessage()
+            if (packet != null)
             {
-                Receiver = reciever,
-                Sender = "Jim",
-                Message = message
-            };
-            BinaryFormatter format = new BinaryFormatter();
-            format.Serialize(tcpClient.GetStream(), chatMessage);
+                BinaryFormatter format = new BinaryFormatter();
+                format.Serialize(tcpClient.GetStream(), packet);
+            }
         }
+
+        public void sendMessage(string message, string reciever, string sender)
+        {
+            CChat_Library.Objects.Packet Pack = new CChat_Library.Objects.Packet();
+            Pack.Flag = CChat_Library.Objects.Packet.PacketFlag.PACKETFLAG_CHAT;
+            Pack.Data = new CChat_Library.Objects.Packets.ChatMessage()
+            {
+                Reciever = reciever,
+                Sender = sender,
+                Chat = message
+            };
+            sendPacket(Pack);
+        }
+
 
         public string ip { get; set; }
+
+        public int lost { get; set; }
+
+        public bool logged { get; set; }
+
+        public string login { get; set; }
+
+        public string pass { get; set; }
+
+        
     }
 
     class Client
     {
         protected string naam;
         protected string chatLog;
+        private CChat_Library.Objects.UserStatus.Status status;
 
         public Client(string naam)
         {
             this.naam = naam;
             chatLog = "";
+        }
+
+        public void setStatus(CChat_Library.Objects.UserStatus.Status statuus)
+        {
+            status = statuus;
+        }
+
+        public CChat_Library.Objects.UserStatus.Status getStatus()
+        {
+            return status;
         }
 
         public void recieveChat(string message, string sender)
@@ -247,51 +288,3 @@ namespace WindowsFormsApplication1
         }
     }
 
-    [Serializable]
-    public class ChatMessage
-    {
-        /// <summary>
-        /// The sender of the packet
-        /// </summary>
-        public string Sender { get; set; }
-
-        /// <summary>
-        /// The receiver of the packet
-        /// </summary>
-        public string Receiver { get; set; }
-
-        /// <summary>
-        /// The chat message
-        /// </summary>
-        public string Message { get; set; }
-    }
-    [Serializable]
-    public class Packet
-    {
-        /// <summary>
-        /// The packet flag
-        /// </summary>
-        public enum PacketFlag
-        {
-            PACKETFLAG_REQUEST_HANDSHAKE,
-            PACKETFLAG_RESPONSE_HANDSHAKE,
-            PACKETFLAG_CHAT,
-            PACKETFLAG_BIKECONTROL,
-            PACKETFLAG_VALUES,
-            PACKETFLAG_REQUEST_VALUES,
-            PACKETFLAG_RESPONSE_VALUES,
-            PACKETFLAG_REQUEST_USERLIST,
-            PACKETFLAG_RESPONSE_USERLIST
-        }
-
-        /// <summary>
-        /// The packet data
-        /// </summary>
-        public object Data { get; set; }
-
-        /// <summary>
-        /// The flag of the packet
-        /// </summary>
-        public PacketFlag Flag { get; set; }
-    }
-}

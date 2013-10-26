@@ -16,12 +16,14 @@ namespace CChat_Library.Objects.Packets
         {
             RESULTTYPE_OK,
             RESULTTYPE_INVALIDCREDENTIALS,
-            RESULTTYPE_ACCESSDENIED
+            RESULTTYPE_ACCESSDENIED,
+            RESULTTYPE_USER_EXISTS
         }
 
         /// <summary>
         /// The result that is returned
         /// </summary>
         public ResultType Result { get; set; }
+        public string givenUsername { get; set; }
     }
 }

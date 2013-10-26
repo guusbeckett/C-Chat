@@ -1,6 +1,6 @@
 ﻿namespace WindowsFormsApplication1
 {
-    partial class Form1
+    partial class ChatWindow
     {
         /// <summary>
         /// Required designer variable.
@@ -42,6 +42,8 @@
             this.listBoxRecievers.Name = "listBoxRecievers";
             this.listBoxRecievers.Size = new System.Drawing.Size(120, 472);
             this.listBoxRecievers.TabIndex = 0;
+            this.listBoxRecievers.SelectedIndexChanged += new System.EventHandler(this.listBoxRecievers_SelectedIndexChanged);
+            this.listBoxRecievers.SelectedValueChanged += new System.EventHandler(this.listBoxRecievers_SelectedValueChanged);
             // 
             // buttonSend
             // 
@@ -63,9 +65,10 @@
             // 
             // richTextBoxChat
             // 
-            this.richTextBoxChat.Enabled = false;
             this.richTextBoxChat.Location = new System.Drawing.Point(138, 60);
             this.richTextBoxChat.Name = "richTextBoxChat";
+            this.richTextBoxChat.ReadOnly = true;
+            this.richTextBoxChat.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.ForcedVertical;
             this.richTextBoxChat.Size = new System.Drawing.Size(400, 402);
             this.richTextBoxChat.TabIndex = 3;
             this.richTextBoxChat.Text = "";
@@ -80,7 +83,7 @@
             this.labelActiveClient.TabIndex = 4;
             this.labelActiveClient.Text = "Client";
             // 
-            // Form1
+            // ChatWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -90,8 +93,9 @@
             this.Controls.Add(this.textBoxSend);
             this.Controls.Add(this.buttonSend);
             this.Controls.Add(this.listBoxRecievers);
-            this.Name = "Form1";
-            this.Text = "C-Chat";
+            this.Name = "ChatWindow";
+            this.Text = "C-Chat by Mackett";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.ChatWindow_FormClosing);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -102,8 +106,8 @@
         private System.Windows.Forms.ListBox listBoxRecievers;
         private System.Windows.Forms.Button buttonSend;
         private System.Windows.Forms.TextBox textBoxSend;
-        private System.Windows.Forms.RichTextBox richTextBoxChat;
         private System.Windows.Forms.Label labelActiveClient;
+        public System.Windows.Forms.RichTextBox richTextBoxChat;
     }
 }
 

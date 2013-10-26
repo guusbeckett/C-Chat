@@ -16,6 +16,7 @@ namespace CChat_Library.Objects
             STATUS_AWAY,
             SATUS_BUSY
         }
+
         public Status stat { get; set; }
     }
 }

@@ -39,12 +39,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Objects\UserStatus.cs" />
     <Compile Include="Objects\Packet.cs" />
     <Compile Include="Objects\Packets\ChatMessage.cs" />
+    <Compile Include="Objects\Packets\ChangeStatus.cs" />
     <Compile Include="Objects\Packets\ResponseUsers.cs" />
     <Compile Include="Objects\Packets\RequestUsers.cs" />
     <Compile Include="Objects\Packets\ResponseHandshake.cs" />
     <Compile Include="Objects\Packets\Handshake.cs" />
+    <Compile Include="Objects\Packets\StatusUpdate.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
