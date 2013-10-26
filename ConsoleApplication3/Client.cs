@@ -46,6 +46,8 @@ namespace ConsoleApplication3
                 {
                     System.Diagnostics.Debug.WriteLine("Closed as exception: " + e);
                     binaryFormatter = null;
+                    server.removeFromList(this);
+                    server.refreshListForAll();
                     close();
                 }
 
@@ -56,12 +58,14 @@ namespace ConsoleApplication3
         {
             try
             {
-                clientTcp.GetStream().Close();
+                //clientTcp.GetStream().Close();
+                //Console.WriteLine("Deze gaat nog");
                 clientTcp.Close();
                 clientThread.Abort();
             }
-            catch
+            catch(Exception e)
             {
+               throw e;
             }
         }
 
@@ -80,8 +84,8 @@ namespace ConsoleApplication3
             System.Runtime.Serialization.Formatters.Binary.BinaryFormatter formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
             try
             {
-                Console.WriteLine(responsePack.Flag);
-                Console.WriteLine(responsePack.Data);
+                //Console.WriteLine("Send: " + responsePack.Flag);
+                //Console.WriteLine("Send: " + responsePack.Data);
                 formatter.Serialize(clientTcp.GetStream(), responsePack);
             }
             catch (Exception e)

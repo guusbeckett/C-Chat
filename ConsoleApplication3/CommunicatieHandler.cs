@@ -30,13 +30,13 @@ namespace ConsoleApplication3
                     break;
 
                 case Packet.PacketFlag.PACKETFLAG_CHAT:
-                    System.Diagnostics.Debug.WriteLine("TESTEN");
                     _server.sendMessage(packet, _client);
                     break;
 
                 case Packet.PacketFlag.PACKETFLAG_REQUEST_HANDSHAKE:
-                    Console.WriteLine("handshake ??");
+                    setUssername(_client, packet);
                     _server.handshakeResponse(_client, (Handshake)packet.Data);
+                    _server.refreshListForAll();
                     break;
 
                 case Packet.PacketFlag.PACKETFLAG_REQUEST_USERLIST:

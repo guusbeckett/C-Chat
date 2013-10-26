@@ -72,16 +72,25 @@ namespace ConsoleApplication3
                     client.sendHandler(_packet);
                 }
             }
-        }   
+        }
+
+        public void refreshListForAll()
+        {
+            Packet packet = getOnlineList();
+            foreach (Client client in clientList)
+            {
+                client.sendHandler(packet);
+            }
+        }
         
         public void handshakeResponse(Client _client, Handshake _handshake)
         {
             count = 1;
             ResponseHandshake antwoord = new ResponseHandshake();
             //antwoord.Result = ResponseHandshake.ResultType.RESULTTYPE_ACCESSDENIED;
-            if (clientList == null)
+            if (clientList.Count == 0)
             {
-                Console.WriteLine("HIJ IS NULL");
+                Console.WriteLine("Geen users online, creating List");
                 clientList.Add(_client);
                 antwoord.Result = ResponseHandshake.ResultType.RESULTTYPE_OK;
             }
@@ -91,22 +100,23 @@ namespace ConsoleApplication3
                 {
                     if (client.user.Equals(_client.user))
                     {
-                        Console.WriteLine("Response is EXISTS");
+                        //Console.WriteLine("Response is EXISTS");
                         antwoord.Result = ResponseHandshake.ResultType.RESULTTYPE_USER_EXISTS;
                         changeName(_client, client);
                         clientList.Add(_client);
                         antwoord.givenUsername = _client.user;
+                        break;
                     }
                     else
                     {
-                        Console.WriteLine("Response is OK");
+                        //Console.WriteLine("Response is OK");
                         clientList.Add(_client);
                         antwoord.Result = ResponseHandshake.ResultType.RESULTTYPE_OK;
+                        break;
                     }
                 }
             }
             Packet responsePack = new Packet();
-            Console.WriteLine("Response: " + antwoord.ToString());
             responsePack.Data = antwoord;
             responsePack.Flag = Packet.PacketFlag.PACKETFLAG_RESPONSE_HANDSHAKE;
             _client.sendHandler(responsePack);
@@ -128,6 +138,7 @@ namespace ConsoleApplication3
             Packet packet = new Packet();
             packet.Flag = Packet.PacketFlag.PACKETFLAG_RESPONSE_USERLIST;
             List<string> sendlist = new List<string>();
+            Console.WriteLine("Users: ");
             foreach (Client client in clientList )
             {
                 Console.WriteLine(client.user);
@@ -136,6 +147,11 @@ namespace ConsoleApplication3
 
             packet.Data = sendlist;
             return packet;
+        }
+
+        public void removeFromList(Client _client)
+        {
+            clientList.Remove(_client);
         }
 
         public void changeStatus(Packet packet, Client _client)
