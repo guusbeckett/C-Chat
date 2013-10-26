@@ -9,6 +9,7 @@ using CChat_Library.Objects.Packets;
 
 namespace ConsoleApplication3
 {
+
     class Client
     {
 
@@ -44,6 +45,7 @@ namespace ConsoleApplication3
                 catch (Exception e)
                 {
                     System.Diagnostics.Debug.WriteLine("Closed as exception: " + e);
+                    binaryFormatter = null;
                     close();
                 }
 
@@ -78,6 +80,8 @@ namespace ConsoleApplication3
             System.Runtime.Serialization.Formatters.Binary.BinaryFormatter formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
             try
             {
+                Console.WriteLine(responsePack.Flag);
+                Console.WriteLine(responsePack.Data);
                 formatter.Serialize(clientTcp.GetStream(), responsePack);
             }
             catch (Exception e)

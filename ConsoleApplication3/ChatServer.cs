@@ -13,11 +13,13 @@ using System.Collections.Generic;
 
 namespace ConsoleApplication3
 {
+
     class ChatServer
     {
         //
         private TcpListener tcpListener;
         private List<Client> clientList = new List<Client>();
+        int count = 1;
 
 
        //
@@ -74,44 +76,66 @@ namespace ConsoleApplication3
         
         public void handshakeResponse(Client _client, Handshake _handshake)
         {
-            int count = 1;
+            count = 1;
             ResponseHandshake antwoord = new ResponseHandshake();
-            antwoord.Result = ResponseHandshake.ResultType.RESULTTYPE_ACCESSDENIED;
-            if (clientList.Contains(_client))
+            //antwoord.Result = ResponseHandshake.ResultType.RESULTTYPE_ACCESSDENIED;
+            if (clientList == null)
             {
-                antwoord.Result = ResponseHandshake.ResultType.RESULTTYPE_USER_EXISTS;
-                foreach (Client client in clientList)
-	            {
-		            if (_client.user.Equals(client.user + count))
-	                {
-		                count++;
-	                }
-                    else antwoord.givenUsername = _client.user + count;
-	            }
+                Console.WriteLine("HIJ IS NULL");
+                clientList.Add(_client);
+                antwoord.Result = ResponseHandshake.ResultType.RESULTTYPE_OK;
             }
             else
             {
-                addToClientList(_client);
-                antwoord.Result = ResponseHandshake.ResultType.RESULTTYPE_OK;
+                foreach (Client client in clientList)
+                {
+                    if (client.user.Equals(_client.user))
+                    {
+                        Console.WriteLine("Response is EXISTS");
+                        antwoord.Result = ResponseHandshake.ResultType.RESULTTYPE_USER_EXISTS;
+                        changeName(_client, client);
+                        clientList.Add(_client);
+                        antwoord.givenUsername = _client.user;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Response is OK");
+                        clientList.Add(_client);
+                        antwoord.Result = ResponseHandshake.ResultType.RESULTTYPE_OK;
+                    }
+                }
             }
-
             Packet responsePack = new Packet();
+            Console.WriteLine("Response: " + antwoord.ToString());
             responsePack.Data = antwoord;
             responsePack.Flag = Packet.PacketFlag.PACKETFLAG_RESPONSE_HANDSHAKE;
             _client.sendHandler(responsePack);
+        }
+
+        public void changeName(Client _client, Client client)
+        {
+            if (client.user.Equals(_client.user))
+            {
+                _client.user = _client.user + count;
+                count++;
+                changeName(_client, client);
+            }
+            else return;
         }
 
         public Packet getOnlineList()
         {
             Packet packet = new Packet();
             packet.Flag = Packet.PacketFlag.PACKETFLAG_RESPONSE_USERLIST;
-            packet.Data = clientList;
-            return packet;
-        }
+            List<string> sendlist = new List<string>();
+            foreach (Client client in clientList )
+            {
+                Console.WriteLine(client.user);
+                sendlist.Add(client.user);
+            }
 
-        public void addToClientList(Client client)
-        {
-            clientList.Add(client);
+            packet.Data = sendlist;
+            return packet;
         }
 
         public void changeStatus(Packet packet, Client _client)

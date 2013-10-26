@@ -12,6 +12,7 @@ using CChat_Library.Objects.Packets;
 
 namespace ConsoleApplication3
 {
+
     class CommunicatieHandler
     {
         public CommunicatieHandler()
@@ -21,6 +22,7 @@ namespace ConsoleApplication3
 
         public static void readPacket(ChatServer _server, Client _client, Packet packet)
         {
+            Console.WriteLine(packet.Flag);
             switch (packet.Flag)
             {
                 case Packet.PacketFlag.PACKETFLAG_CHANGE_STATUS:
@@ -33,6 +35,7 @@ namespace ConsoleApplication3
                     break;
 
                 case Packet.PacketFlag.PACKETFLAG_REQUEST_HANDSHAKE:
+                    Console.WriteLine("handshake ??");
                     _server.handshakeResponse(_client, (Handshake)packet.Data);
                     break;
 
