@@ -65,6 +65,7 @@ namespace WindowsFormsApplication1
 
         private void form2()
         {
+
             Application.Run(Program.chatWindow);
         }
 
@@ -151,15 +152,11 @@ namespace WindowsFormsApplication1
                         }
                         foreach(string usr in users)
                         {
-                            Program.clients.Add(new Client(usr));
+                            Client newClient = new Client(usr);
+                            newClient.setStatus(CChat_Library.Objects.UserStatus.Status.STATUS_ONLINE);
+                            Program.clients.Add(newClient);
                         }
-
-                        
                     }
-                    
-
-                    
-                    
                     break;
                 case CChat_Library.Objects.Packet.PacketFlag.PACKETFLAG_CHAT:
                     
@@ -206,7 +203,9 @@ namespace WindowsFormsApplication1
                             break;
                         case CChat_Library.Objects.Packets.ResponseHandshake.ResultType.RESULTTYPE_OK:
                             //Program.form2.Hide();
+
                             Thread Comm = new Thread(form2);
+                            Comm.SetApartmentState(ApartmentState.STA);
                             Comm.Start();
                             Program.clients = new List<Client>();
 

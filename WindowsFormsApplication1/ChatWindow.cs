@@ -207,16 +207,20 @@ namespace WindowsFormsApplication1
             switch (vlag)
             {
                 case CChat_Library.Objects.UserStatus.Status.STATUS_ONLINE:
-                    button1.BackColor = Color.Green;
+                    //button1.BackColor = Color.Green;
+                    pictureBox1.ImageLocation = "online.png";
                     break;
                 case CChat_Library.Objects.UserStatus.Status.STATUS_OFFLINE:
-                    button1.BackColor = Color.Gray;
+                    //button1.BackColor = Color.Gray;
+                    pictureBox1.ImageLocation = "offline.png";
                     break;
                 case CChat_Library.Objects.UserStatus.Status.STATUS_AWAY:
-                    button1.BackColor = Color.Orange;
+                    //button1.BackColor = Color.Orange;
+                    pictureBox1.ImageLocation = "away.png";
                     break;
                 case CChat_Library.Objects.UserStatus.Status.SATUS_BUSY:
-                    button1.BackColor = Color.Red;
+                    //button1.BackColor = Color.Red;
+                    pictureBox1.ImageLocation = "busy.png";
                     break;
             }
         }
@@ -265,6 +269,16 @@ namespace WindowsFormsApplication1
                 }
 
             }
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            saveFileDialog.ShowDialog();
+        }
+
+        private void saveFileDialog1_FileOk(object sender, CancelEventArgs e)
+        {
+            System.IO.File.WriteAllText(saveFileDialog.FileName, richTextBoxChat.Text);
         }
     }
 
