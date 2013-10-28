@@ -26,7 +26,7 @@ namespace ConsoleApplication3
             switch (packet.Flag)
             {
                 case Packet.PacketFlag.PACKETFLAG_CHANGE_STATUS:
-                    _server.changeStatus(packet, _client);
+                    _client.sendHandler(_server.changeStatus(packet, _client));
                     break;
 
                 case Packet.PacketFlag.PACKETFLAG_CHAT:
@@ -34,7 +34,7 @@ namespace ConsoleApplication3
                     break;
 
                 case Packet.PacketFlag.PACKETFLAG_REQUEST_HANDSHAKE:
-                    setUssername(_client, packet);
+                    setUssernamePassword(_client, packet);
                     _server.handshakeResponse(_client, (Handshake)packet.Data);
                     _server.refreshListForAll();
                     break;
@@ -49,9 +49,9 @@ namespace ConsoleApplication3
             }
         }
 
-        public static void setUssername(Client client, Packet packet)
+        public static void setUssernamePassword(Client client, Packet packet)
         {
-            client.setUssername(((Handshake)packet.Data).username); 
+            client.setUsernamePassword((((Handshake)packet.Data).username), (((Handshake)packet.Data).password)); 
         }
         
     }

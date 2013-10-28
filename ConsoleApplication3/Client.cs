@@ -18,6 +18,7 @@ namespace ConsoleApplication3
         private TcpClient clientTcp;
         private ChatServer server;
         public String user;
+        public String password;
         public CChat_Library.Objects.UserStatus.Status status;
 
         //
@@ -74,9 +75,10 @@ namespace ConsoleApplication3
             this.status = status;
         }
     
-        public void setUssername(string p)
+        public void setUsernamePassword(string u, string p)
         {
-            this.user = p;
+            this.password = p;
+            this.user = u;
         }
 
         internal void sendHandler(Packet responsePack)

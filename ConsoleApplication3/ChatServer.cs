@@ -63,6 +63,8 @@ namespace ConsoleApplication3
         {
             ChatMessage msg = (ChatMessage)_packet.Data;
 
+            saveLogMsg(msg.Chat, _client.user);
+
             Console.WriteLine(msg.Chat);
 
             foreach (Client client in clientList)
@@ -70,6 +72,7 @@ namespace ConsoleApplication3
                 if (client.user == msg.Reciever || msg.Reciever == "ALL")
                 {
                     client.sendHandler(_packet);
+                    return;
                 }
             }
         }
@@ -154,12 +157,28 @@ namespace ConsoleApplication3
             clientList.Remove(_client);
         }
 
-        public void changeStatus(Packet packet, Client _client)
+        public Packet changeStatus(Packet _packet, Client _client)
         {
-            _client.setStatus(UserStatus.Status.STATUS_ONLINE);
-            _client.setStatus(UserStatus.Status.SATUS_BUSY);
-            _client.setStatus(UserStatus.Status.STATUS_AWAY);
-            _client.setStatus(UserStatus.Status.STATUS_OFFLINE);
+            CChat_Library.Objects.UserStatus.Status status = ((CChat_Library.Objects.Packets.ChangeStatus)_packet.Data).status;
+
+            Packet packet = new Packet();
+            packet.Flag = Packet.PacketFlag.PACKETFLAG_RESPONSE_STATUS;
+            CChat_Library.Objects.Packets.ChangeStatus henkie = new CChat_Library.Objects.Packets.ChangeStatus();
+            henkie.clientName = _client.user;
+            henkie.status=status;
+            packet.Data = henkie;
+            return packet;
+        }
+
+        public void saveLogMsg(string msg, string user)
+        {
+            DateTime vandaagdate = DateTime.Today;
+            string vandaag = vandaagdate.ToShortDateString().Replace("-", "");
+            StreamWriter writer = new StreamWriter(vandaag + ".log");
+            DateTime tijd = DateTime.Now;
+            writer.WriteLine("[" + tijd.ToShortTimeString() + "] " + user +": \" " +  msg + " \"");
+            writer.Flush();
+            writer.Close();
         }
     }
 }
