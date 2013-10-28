@@ -26,7 +26,7 @@ namespace ConsoleApplication3
             switch (packet.Flag)
             {
                 case Packet.PacketFlag.PACKETFLAG_CHANGE_STATUS:
-                    _client.sendHandler(_server.changeStatus(packet, _client));
+                    _server.changeStatus(packet, _client);
                     break;
 
                 case Packet.PacketFlag.PACKETFLAG_CHAT:

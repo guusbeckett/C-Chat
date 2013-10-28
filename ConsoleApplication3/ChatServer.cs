@@ -91,6 +91,10 @@ namespace ConsoleApplication3
             count = 1;
             ResponseHandshake antwoord = new ResponseHandshake();
             //antwoord.Result = ResponseHandshake.ResultType.RESULTTYPE_ACCESSDENIED;
+            if(_client.user.Equals("ALL"))
+            {
+                antwoord.Result = ResponseHandshake.ResultType.RESULTTYPE_INVALIDCREDENTIALS;
+            }
             if (clientList.Count == 0)
             {
                 Console.WriteLine("Geen users online, creating List");
@@ -157,7 +161,7 @@ namespace ConsoleApplication3
             clientList.Remove(_client);
         }
 
-        public Packet changeStatus(Packet _packet, Client _client)
+        public void changeStatus(Packet _packet, Client _client)
         {
             CChat_Library.Objects.UserStatus.Status status = ((CChat_Library.Objects.Packets.ChangeStatus)_packet.Data).status;
 
@@ -167,14 +171,17 @@ namespace ConsoleApplication3
             henkie.clientName = _client.user;
             henkie.status=status;
             packet.Data = henkie;
-            return packet;
+            foreach (Client client in clientList)
+            {
+                client.sendHandler(packet);
+            }
         }
 
         public void saveLogMsg(string msg, string user)
         {
             DateTime vandaagdate = DateTime.Today;
             string vandaag = vandaagdate.ToShortDateString().Replace("-", "");
-            StreamWriter writer = new StreamWriter(vandaag + ".log");
+            StreamWriter writer = new StreamWriter(vandaag + ".log", true);
             DateTime tijd = DateTime.Now;
             writer.WriteLine("[" + tijd.ToShortTimeString() + "] " + user +": \" " +  msg + " \"");
             writer.Flush();
