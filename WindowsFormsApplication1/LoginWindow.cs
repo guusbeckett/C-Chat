@@ -18,7 +18,6 @@ namespace WindowsFormsApplication1
             InitializeComponent();
             Program.connect = new Connection();
             connect = Program.connect;
-            this.Name = "Kanarie";
         }
 
         private void textBox2_KeyDown(object sender, KeyEventArgs e)
@@ -27,7 +26,10 @@ namespace WindowsFormsApplication1
             {
                 try
                 {
+                    Program.chatWindow.openForm();
                     connect.Login(textBox1.Text, textBox2.Text, textBox3.Text);
+                    this.Close();
+                    
                 }
 
                 catch
@@ -68,11 +70,30 @@ namespace WindowsFormsApplication1
             try
             {
                 connect.Login(textBox1.Text, textBox2.Text, textBox3.Text);
+                this.Close();
             }
 
             catch
             {
                 MessageBox.Show("Server is unavailable, it is probably offline, please try again later.", "Server unavailable", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void textBox1_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                try
+                {
+                    Program.chatWindow.openForm();
+                    connect.Login(textBox1.Text, textBox2.Text, textBox3.Text);
+                    this.Close();
+                }
+
+                catch
+                {
+                    MessageBox.Show("Server is unavailable, it is probably offline, please try again later.", "Server unavailable", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
 

@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using CChat_Library;
+using System.Media;
 
 namespace WindowsFormsApplication1
 {
@@ -14,10 +16,16 @@ namespace WindowsFormsApplication1
     {
         public string selectedReciever;
         public string clientName;
+        private Dictionary<string, CChat_Library.Objects.UserStatus.Status> statusDict = new Dictionary<string, CChat_Library.Objects.UserStatus.Status>() { {"Online", CChat_Library.Objects.UserStatus.Status.STATUS_ONLINE },{"Busy",CChat_Library.Objects.UserStatus.Status.SATUS_BUSY},{"Away",CChat_Library.Objects.UserStatus.Status.STATUS_AWAY},{"Offline", CChat_Library.Objects.UserStatus.Status.STATUS_OFFLINE} };
+
         public ChatWindow()
         {
             InitializeComponent();
+            //comboBox1.SelectedIndex = 0; 
+            playStartUpSpound();
         }
+
+        
 
         private void buttonSend_Click(object sender, EventArgs e)
         {
@@ -40,25 +48,33 @@ namespace WindowsFormsApplication1
 
         internal void refreshChat()
         {
-            if (selectedReciever != null)
-            {
-                foreach (Client clie in Program.clients)
-                {
-                       
-                    if(clie.getName().Equals(selectedReciever)) richTextBoxChat.Text = clie.getChat();
-                }
-            }
+            
+                loadChat();
+            
         }
 
         private void sendChat()
         {
-            if (listBoxRecievers.SelectedIndex <= 0) Program.connect.sendMessage(textBoxSend.Text, "ALL", clientName);
-            else Program.connect.sendMessage(textBoxSend.Text,selectedReciever,clientName);
+            if (listBoxRecievers.SelectedIndex < 0) Program.connect.sendMessage(textBoxSend.Text, "ALL", clientName);
+            else
+            {
+                Program.connect.sendMessage(textBoxSend.Text, selectedReciever, clientName);
+                foreach(Client jimDeKanarie in Program.clients)
+                {
+                    if(jimDeKanarie.getName().Equals(selectedReciever))
+                    {
+                        jimDeKanarie.recieveChat(textBoxSend.Text, "Me");
+                    }
+                }
+                refreshChat();
+            }
+
         }
 
         public void setClientName(string clientNaam)
         {
             clientName = clientNaam;
+            Program.connect.sendMessage(clientName + " is now online.", "ALL", clientName);
         }
 
 
@@ -68,9 +84,16 @@ namespace WindowsFormsApplication1
             foreach(string user in users)
             {
                 if (!user.Equals(clientName)) listBoxRecievers.Items.Add(user);
+
             }
-            
+            if(listBoxRecievers.SelectedValue == null)
+            {
+                richTextBoxChat.Text = "";
+            }
+
         }
+            
+        
 
         private void listBoxRecievers_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -80,20 +103,38 @@ namespace WindowsFormsApplication1
         private void listBoxRecievers_SelectedValueChanged(object sender, EventArgs e)
         {
             richTextBoxChat.Text = "";
+            if (!listBoxRecievers.SelectedIndex.Equals(-1))
+            {
+                loadChat();
+            if (selectedReciever.Equals(userFormNotification))
+            {
+                labelUserSendMessage.Text = "";
+            }
+            }
+            foreach(Client client in Program.clients)
+            {
+                if(client.getName().Equals(selectedReciever))
+                {
+                    updateStatus(client.getStatus());
+                }
+            }
+        }
+
+        private void loadChat()
+        {
             selectedReciever = this.listBoxRecievers.SelectedItem.ToString();
             this.labelActiveClient.Text = selectedReciever;
             foreach (Client klient in Program.clients)
             {
-                foreach (Client cl in Program.clients)
+                if (klient.getName().Equals(listBoxRecievers.SelectedItem))
                 {
-                    if (cl.getName().Equals(listBoxRecievers.SelectedItem))
+                    try
                     {
-                        try
-                        {
-                            Program.chatWindow.Invoke(new Action(() => setChatText(klient.getChat())));
-                        }
-                        catch { }
+                        Program.chatWindow.Invoke(new Action(() => setChatText(klient.getChat())));
                     }
+                    catch { }
+                    setChatText(klient.getChat());
+                    break;
                 }
             }
         }
@@ -106,8 +147,10 @@ namespace WindowsFormsApplication1
                     Program.chatWindow.Invoke(new Action(() => procesChat(sender,message)));
                 }
                 catch { }
-                
+             
             }
+            richTextBoxChat.SelectionStart = richTextBoxChat.Text.Length;
+            richTextBoxChat.ScrollToCaret();
         }
         private void procesChat(string sender, string message)
         {
@@ -124,16 +167,108 @@ namespace WindowsFormsApplication1
                         cl.recieveChat(message, sender);
                     }
                 }
+            richTextBoxChat.SelectionStart = richTextBoxChat.Text.Length;
+            richTextBoxChat.ScrollToCaret();
+            
         }
 
         private void setChatText(string text)
         {
             richTextBoxChat.Text = text;
+            richTextBoxChat.SelectionStart = richTextBoxChat.Text.Length;
+            richTextBoxChat.ScrollToCaret();
         }
 
         private void ChatWindow_FormClosing(object sender, FormClosingEventArgs e)
         {
             Environment.Exit(1);
         }
+
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            CChat_Library.Objects.UserStatus.Status sendStatus = CChat_Library.Objects.UserStatus.Status.STATUS_ONLINE;
+            foreach (KeyValuePair<string,CChat_Library.Objects.UserStatus.Status> stat in statusDict)
+            {
+                if (comboBoxStatus.SelectedIndex >= 0)
+                {
+                    if (stat.Key.Equals(comboBoxStatus.SelectedItem.ToString()))
+                    {
+                        sendStatus = stat.Value;
+                        break;
+                    }
+                }
+
+            }
+            Program.connect.changeStatus(sendStatus);
+        }
+
+        public void updateStatus(CChat_Library.Objects.UserStatus.Status vlag)
+        {
+            switch (vlag)
+            {
+                case CChat_Library.Objects.UserStatus.Status.STATUS_ONLINE:
+                    button1.BackColor = Color.Green;
+                    break;
+                case CChat_Library.Objects.UserStatus.Status.STATUS_OFFLINE:
+                    button1.BackColor = Color.Gray;
+                    break;
+                case CChat_Library.Objects.UserStatus.Status.STATUS_AWAY:
+                    button1.BackColor = Color.Orange;
+                    break;
+                case CChat_Library.Objects.UserStatus.Status.SATUS_BUSY:
+                    button1.BackColor = Color.Red;
+                    break;
+            }
+        }
+
+        internal void playStartUpSpound()
+        {
+            (new SoundPlayer(@"startup.wav")).Play();
+        }
+
+        internal void playNotificationSound()
+        {
+            (new SoundPlayer(@"notification.wav")).Play();
+        }
+
+        private void ChatWindow_VisibleChanged(object sender, EventArgs e)
+        {
+            
+        }
+
+        public void openForm()
+        {
+            comboBoxStatus.SelectedIndex = 0;
+        }
+
+        public void recieveMessageNotification(string user)
+        {
+            userFormNotification = user;
+            Program.chatWindow.playNotificationSound();
+            labelUserSendMessage.Text = user + " just send you a message!";
+        }
+
+        public string userFormNotification { get; set; }
+
+        internal void updateStatus(CChat_Library.Objects.Packets.ChangeStatus statPack)
+        {
+            foreach (Client client in Program.clients)
+            {
+                if (client.getName().Equals(statPack.clientName)&&!client.getName().Equals(clientName))
+                {
+                    Program.chatWindow.updateStatus(statPack.status);
+                    break;
+                }
+                if (client.getName().Equals(statPack.clientName))
+                {
+                    client.setStatus(statPack.status);
+                }
+
+            }
+        }
     }
+
+
 }
+
+

@@ -59,6 +59,8 @@ namespace WindowsFormsApplication1
              this.login = login;
              this.pass = password;
              Program.chatWindow.clientName = login;
+             Program.chatWindow.Text = "C-Chat by Mackett - " + login;
+            
         }
 
         private void form2()
@@ -139,34 +141,49 @@ namespace WindowsFormsApplication1
                     if (Program.chatWindow.InvokeRequired)
                     {
                         Program.chatWindow.Invoke(new Action(() => Program.chatWindow.updateUsers(users)));
+                        
+                        foreach(Client client in Program.clients)
+                        {
+                            if(users.Contains(client.getName()))
+                            {
+                                users.Remove(client.getName());
+                            }
+                        }
+                        foreach(string usr in users)
+                        {
+                            Program.clients.Add(new Client(usr));
+                        }
+
+                        
                     }
+                    
+
+                    
                     
                     break;
                 case CChat_Library.Objects.Packet.PacketFlag.PACKETFLAG_CHAT:
+                    
                     CChat_Library.Objects.Packets.ChatMessage chatMess = (CChat_Library.Objects.Packets.ChatMessage)packet.Data;
                     foreach (Client client in Program.clients)
                     {
                         if (client.getName().Equals(chatMess.Sender.ToString()))
                         {
                             client.recieveChat(chatMess.Chat, chatMess.Sender);
-                            int o = 0;
-                            for (int i = 0; i < Program.clients.Count; i++)
-                            {
-                                if (Program.clients[i].getName().Equals(chatMess.Sender))
-                                {
-                                    o = i;
-                                    break;
-                                }
-                            }
-                        
-
-                            if (Program.chatWindow.selectedReciever.Equals(null))
+                            
+                            if (Program.chatWindow.selectedReciever != null)
                             {
                                 if (Program.chatWindow.InvokeRequired)
                                 {
                                     Program.chatWindow.Invoke(new Action(() => Program.chatWindow.refreshChat()));
                                 }
+                                else Program.chatWindow.refreshChat();
                             }
+                            if (Program.chatWindow.selectedReciever == null || !Program.chatWindow.selectedReciever.Equals(chatMess.Sender))
+                            {
+                                Program.chatWindow.recieveMessageNotification(chatMess.Sender);
+                            }
+                            
+                            break;
                         }
                     }
                     if (chatMess.Reciever.Equals("ALL"))
@@ -192,11 +209,18 @@ namespace WindowsFormsApplication1
                             Thread Comm = new Thread(form2);
                             Comm.Start();
                             Program.clients = new List<Client>();
+
                             requestUsers();
                             break;
                    
 
                     }
+               break;
+
+                case CChat_Library.Objects.Packet.PacketFlag.PACKETFLAG_RESPONSE_STATUS:
+                    CChat_Library.Objects.Packets.ChangeStatus statPack = (CChat_Library.Objects.Packets.ChangeStatus) packet.Data;
+                    Program.chatWindow.updateStatus(statPack);
+
                     break;
                 default:
                     Console.WriteLine("packet not recognized");
@@ -204,6 +228,17 @@ namespace WindowsFormsApplication1
             }
                   
             
+        }
+
+        public void changeStatus(CChat_Library.Objects.UserStatus.Status status)
+        {
+            CChat_Library.Objects.Packet Pack = new CChat_Library.Objects.Packet();
+            Pack.Flag = CChat_Library.Objects.Packet.PacketFlag.PACKETFLAG_CHANGE_STATUS;
+            CChat_Library.Objects.Packets.ChangeStatus paket = new CChat_Library.Objects.Packets.ChangeStatus();
+            Pack.Data = paket;
+            paket.clientName = Program.chatWindow.clientName;
+            paket.status = status;
+            sendPacket(Pack);
         }
 
         public void requestUsers()
@@ -262,9 +297,9 @@ namespace WindowsFormsApplication1
             chatLog = "";
         }
 
-        public void setStatus(CChat_Library.Objects.UserStatus.Status statuus)
+        public void setStatus(CChat_Library.Objects.UserStatus.Status status1)
         {
-            status = statuus;
+            status = status1;
         }
 
         public CChat_Library.Objects.UserStatus.Status getStatus()

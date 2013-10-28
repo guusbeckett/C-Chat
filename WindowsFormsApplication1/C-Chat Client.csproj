@@ -94,6 +94,14 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="away.png" />
+    <Content Include="busy.png" />
+    <Content Include="notification.wav" />
+    <Content Include="startup.wav" />
+    <Content Include="offline.png" />
+    <Content Include="online.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
